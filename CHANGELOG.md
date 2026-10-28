@@ -2,7 +2,7 @@
 
 All notable changes to Smart Parks Protect Go. The format follows Keep a Changelog; versions are git tags. Each entry names the Protect commit the release decodes with.
 
-## Unreleased
+## v0.18.0, 2026-10-28
 
 ### Added
 
