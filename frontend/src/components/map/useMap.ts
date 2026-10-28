@@ -156,8 +156,8 @@ export function useMap(
       // the project id arrived during the first load, 2026-10-28). So this commit only
       // turns `ready` off, the pages tear their layers down, and the next one restyles.
       pending.current = { flavour, projectId };
-      setReady(false);
-      return;
+      const timer = setTimeout(() => setReady(false), 0);
+      return () => clearTimeout(timer);
     }
     const wanted = pending.current;
     if (!wanted) return; // a style is loading already; its `style.load` brings `ready` back
