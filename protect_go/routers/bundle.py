@@ -299,9 +299,15 @@ async def load_bundle(app: FastAPI, body: LoadRequest, *, make_current: bool = T
     cards: CardStore | None = getattr(app.state, "card_store", None)
     read_again = cards.read_unknown_again(bundle) if cards is not None else 0
     name = body.project_name or summary.project_name
+    # the server's map was cut for regions the project has outgrown (a tracker far from the
+    # stations; Protect's decision D365, D35 here): ask for a new one before fetching
+    served_map = bundle.get("map")
+    outgrown = not isinstance(served_map, dict) or served_map.get("covers_areas", True) is False
     try:
         map_state = await fetch_project_map(
-            app, MapFetch(project_id=body.project_id, project_name=name)
+            app,
+            MapFetch(project_id=body.project_id, project_name=name),
+            ask_first=outgrown and isinstance(served_map, dict),
         )
     except HTTPException as exc:
         map_state = read_map(app, body.project_id)

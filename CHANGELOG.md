@@ -2,6 +2,12 @@
 
 All notable changes to Smart Parks Protect Go. The format follows Keep a Changelog; versions are git tags. Each entry names the Protect commit the release decodes with.
 
+## Unreleased
+
+### Fixed
+
+- **The map follows a tracker that went far from the stations** (Tim, 2026-10-28, decision D35: SP051307 drove through Namibia and the app's map held the Netherlands, where the offload station stands, and nothing of where the tracker was). Protect now cuts the map from several regions in one file, the project's places and the current positions of its devices grouped by distance (Protect's decision D365), and the bundle says whether the server's map still covers them. When it does not, a load of the project asks the server for a new map before fetching, says so while it is being cut, and the next sync brings it; a map that covers the project is fetched as before. A server before Protect's D365 answers no such word and the app behaves as it did.
+
 ## v0.17.3, 2026-10-24
 
 ### Fixed

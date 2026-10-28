@@ -123,12 +123,15 @@ async def fetch_map(body: MapFetch, request: Request) -> MapRead:
     return await fetch_project_map(request.app, body)
 
 
-async def fetch_project_map(app: FastAPI, body: MapFetch) -> MapRead:
+async def fetch_project_map(app: FastAPI, body: MapFetch, *, ask_first: bool = False) -> MapRead:
     """Ask the server for the project's map and keep it: the server's `GET
     /projects/{id}/field-bundle/map` streams the file when it is ready, answers 202 with its
     state while it is being cut (then this asks for it with POST and says so), 404 when none was
-    asked for yet (the same POST), and 409 when the last attempt failed. Called by the route
-    and by the background sync (D34), so it takes the app and not a request."""
+    asked for yet (the same POST), and 409 when the last attempt failed. With `ask_first` the
+    POST comes before the GET: the bundle said the server's map no longer covers the project's
+    regions (a tracker far from the stations, decision D35), so a new one is asked for and the
+    GET then answers 202 until it is cut. Called by the route and by the background sync (D34),
+    so it takes the app and not a request."""
     store: Store = app.state.store
     settings = store.load()
     if settings.server_url is None or not settings.signed_in:
@@ -144,6 +147,21 @@ async def fetch_project_map(app: FastAPI, body: MapFetch) -> MapRead:
             timeout=httpx.Timeout(60.0, read=600.0),
             transport=transport,
         ) as http:
+            asked: httpx.Response | None = None
+            if ask_first:
+                asked = await http.post(path, json={}, headers=headers)
+                if asked.status_code == 403:
+                    words[body.project_id] = (
+                        "The project has places the map on this laptop does not cover, and "
+                        "your account may not ask the server for a new one; ask an analyst or "
+                        "an administrator of the project to open the Offload page and prepare "
+                        "the map"
+                    )
+                    return read_map(app, body.project_id)
+                if asked.status_code not in (202, 200):
+                    raise HTTPException(
+                        502, f"The server answered {asked.status_code}: {await _detail(asked)}"
+                    )
             async with http.stream("GET", path, headers=headers) as response:
                 if response.status_code == 200:
                     file.parent.mkdir(parents=True, exist_ok=True)
@@ -169,7 +187,8 @@ async def fetch_project_map(app: FastAPI, body: MapFetch) -> MapRead:
                     return read_map(app, body.project_id)
                 detail = await _detail(response)
             if response.status_code in (404, 202):
-                asked = await http.post(path, json={}, headers=headers)
+                if asked is None:
+                    asked = await http.post(path, json={}, headers=headers)
                 if asked.status_code == 403:
                     words[body.project_id] = (
                         "The server has no map of this project yet, and your account may not "

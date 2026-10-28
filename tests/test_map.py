@@ -147,6 +147,69 @@ async def test_the_map_is_asked_for_then_fetched_then_served_in_ranges(app, tmp_
         assert beyond.status_code == 416
 
 
+async def test_a_map_the_project_outgrew_is_asked_for_again_on_a_load(app, tmp_path):
+    """Decision D35 (Tim, 2026-10-28: the tracker drove through Namibia and the map held the
+    Netherlands, where the station stands). The bundle says whether the server's map still
+    covers the project's regions; when it does not, the load asks the server for a new one
+    before fetching, and says so while it is being cut."""
+    planet = small_map(tmp_path / "server-map.pmtiles")
+    state = {"asked": 0, "covers": False}
+
+    def server(request: httpx.Request) -> httpx.Response:
+        if request.url.path == f"/api/v1/projects/{PROJECT}/field-bundle":
+            served_map = {
+                "status": "ready",
+                "west": -11.0,
+                "south": 7.6,
+                "east": -10.8,
+                "north": 7.9,
+                "regions": [{"west": -11.0, "south": 7.6, "east": -10.8, "north": 7.9}],
+                "covers_areas": state["covers"],
+                "max_zoom": 2,
+                "build": "20261015",
+                "requested_at": "2026-10-17T10:00:00Z",
+                "ready_at": "2026-10-17T10:05:00Z",
+            }
+            return httpx.Response(
+                200,
+                json={
+                    **BUNDLE,
+                    "project": {"id": PROJECT, "name": "LP0"},
+                    "map": served_map,
+                    "revision": "r1",
+                },
+            )
+        if request.url.path == f"/api/v1/projects/{PROJECT}/field-bundle/map":
+            if request.method == "POST":
+                state["asked"] += 1
+                return httpx.Response(202, json={"status": "queued"})
+            if state["asked"]:
+                return httpx.Response(202, json={"status": "queued"})
+            return httpx.Response(200, content=planet, headers={"X-Map-Build": "20261015"})
+        return protect_server(request)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        await _signed_in(client, app)
+        app.state.http_transport = httpx.MockTransport(server)
+        loaded = (
+            await client.post(
+                "/api/bundle/fetch", json={"project_id": PROJECT, "project_name": "LP0"}
+            )
+        ).json()
+        # the map no longer covers the project: asked for, not fetched, and said so
+        assert state["asked"] == 1
+        assert loaded["map"]["present"] is False
+        assert "making the map" in loaded["map"]["server_state"]
+        # a map that covers the project is fetched without asking
+        state.update(asked=0, covers=True)
+        loaded = (
+            await client.post(
+                "/api/bundle/fetch", json={"project_id": PROJECT, "project_name": "LP0"}
+            )
+        ).json()
+        assert state["asked"] == 0 and loaded["map"]["present"] is True
+
+
 def test_the_one_map_of_before_moves_under_its_project(tmp_path):
     """Versions before D32 kept one `map.pmtiles`; it becomes the project's own file, named by
     the note beside it, and a file without a note is dropped."""
