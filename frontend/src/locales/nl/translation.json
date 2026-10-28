@@ -298,8 +298,6 @@
   "{{count}} metrics_other": "{{count}} metingen",
   "{{count}} records_one": "{{count}} record",
   "{{count}} records_other": "{{count}} records",
-  "{{count}} stations on the map_one": "{{count}} station op de kaart",
-  "{{count}} stations on the map_other": "{{count}} stations op de kaart",
   "Command Palette": "Opdrachtenpalet",
   "Search for a command to run...": "Zoek een opdracht om uit te voeren...",
   "The newest release has no installer to fetch yet; it is still being built. Try again in a few minutes.": "De nieuwste release heeft nog geen installatiebestand om op te halen; het wordt nog gebouwd. Probeer het over een paar minuten opnieuw.",
@@ -425,5 +423,6 @@
   "Every project with an offload station is kept on this laptop, with its map, and compared with the server every five minutes while online": "Elk project met een offloadstation wordt op deze laptop bewaard, met zijn kaart, en elke vijf minuten met de server vergeleken terwijl je online bent",
   "{{count}} projects on this laptop, up to date with the server, compared at {{checked}}_one": "{{count}} project op deze laptop, gelijk aan de server, vergeleken om {{checked}}",
   "{{count}} projects on this laptop, up to date with the server, compared at {{checked}}_other": "{{count}} projecten op deze laptop, gelijk aan de server, vergeleken om {{checked}}",
-  "Every project with an offload station is kept on this laptop with its map and brought up to date while online; a switch changes the view alone.": "Elk project met een offloadstation wordt op deze laptop bewaard met zijn kaart en bijgewerkt terwijl je online bent; wisselen verandert alleen de weergave."
+  "Every project with an offload station is kept on this laptop with its map and brought up to date while online; a switch changes the view alone.": "Elk project met een offloadstation wordt op deze laptop bewaard met zijn kaart en bijgewerkt terwijl je online bent; wisselen verandert alleen de weergave.",
+  "No station has a place yet.": "Nog geen station heeft een plaats."
 }

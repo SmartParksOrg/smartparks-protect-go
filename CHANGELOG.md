@@ -4,8 +4,13 @@ All notable changes to Smart Parks Protect Go. The format follows Keep a Changel
 
 ## Unreleased
 
+### Added
+
+- **The stations as a list of their own in the Data explorer's Layers panel** (Tim, 2026-10-28): under the trackers, every offload station with a place has a box to show or hide it on the map, its name a link to the station's page, and Show all and Hide all of its own, as the trackers have; the count line went.
+
 ### Fixed
 
+- **The Data explorer opened straight on its map no longer goes blank** (found on 2026-10-28 while checking the Layers panel in a browser: a page that lands on the explorer's map while the project's map state is still being read drew nothing, "Style is not done loading"). The map was made before the project was known and restyled for it in the same instant it reported ready, under the page's layers. A restyle now waits one render, so the page lets go of its layers first and draws them again on the new style.
 - **The map follows a tracker that went far from the stations** (Tim, 2026-10-28, decision D35: SP051307 drove through Namibia and the app's map held the Netherlands, where the offload station stands, and nothing of where the tracker was). Protect now cuts the map from several regions in one file, the project's places and the current positions of its devices grouped by distance (Protect's decision D365), and the bundle says whether the server's map still covers them. When it does not, a load of the project asks the server for a new map before fetching, says so while it is being cut, and the next sync brings it; a map that covers the project is fetched as before. A server before Protect's D365 answers no such word and the app behaves as it did.
 
 ## v0.17.3, 2026-10-24
